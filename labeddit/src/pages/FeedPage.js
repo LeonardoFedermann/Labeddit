@@ -14,7 +14,7 @@ import { languages } from '../languages/languages'
 import { LanguageContext } from '../globalContext/LanguageContext'
 import likeIconFilled from '../images/favorite.svg'
 import likeIcon from '../images/favorite-white.svg'
-import {BASE_URL} from '../base-url/base-url'
+import { BASE_URL } from '../base-url/base-url'
 
 export default function FeedPage() {
     const history = useHistory()
@@ -51,7 +51,7 @@ export default function FeedPage() {
         try {
             const listOfPosts = await axios.get(`${BASE_URL}posts`, {
                 headers: {
-                    Authorization: token,
+                    Authorization: token
                 }
             })
             let filteredPosts = listOfPosts.data.posts.filter((post) => {
@@ -60,6 +60,7 @@ export default function FeedPage() {
             setPosts(filteredPosts)
         } catch (error) {
             alert(languages[language].errorMessage)
+            console.log(error)
         }
     }
 
@@ -74,7 +75,7 @@ export default function FeedPage() {
             direction: correctedDirection
         }
         try {
-            await axios.put(`${BASE_URL}posts/${id}/vote`, body, {
+            await axios.put(`${BASE_URL}posts/${id}/votes`, body, {
                 headers: {
                     Authorization: token,
                 }

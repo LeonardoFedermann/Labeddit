@@ -36,12 +36,12 @@ export default function PostPage() {
 
     const getPostDetails = async (id) => {
         try {
-            const postDetails = await axios.get(`${BASE_URL}posts/${id}`, {
+            const postDetails = await axios.get(`${BASE_URL}posts/${id}/comments`, {
                 headers: {
                     Authorization: token
                 }
             })
-            const newListOfComments = postDetails.data.post.comments.filter((comment) => {
+            const newListOfComments = postDetails.data.comments.filter((comment) => {
                 return typeof comment.text === 'string'
             })
             const filteredPost = { ...postDetails.data.post, comments: newListOfComments }
@@ -62,7 +62,7 @@ export default function PostPage() {
             direction: correctedDirection
         }
         try {
-            await axios.put(`${BASE_URL}posts/${id}/vote`, body, {
+            await axios.put(`${BASE_URL}posts/${id}/votes`, body, {
                 headers: {
                     Authorization: token,
                 }
@@ -96,7 +96,7 @@ export default function PostPage() {
             direction: correctedDirection
         }
         try {
-            await axios.put(`${BASE_URL}posts/${pathParams.postId}/comment/${id}/vote`, body, {
+            await axios.put(`${BASE_URL}posts/${pathParams.postId}/comments/${id}/votes`, body, {
                 headers: {
                     Authorization: token,
                 }
@@ -128,7 +128,7 @@ export default function PostPage() {
             const newComment = {
                 text: form.text
             }
-            await axios.post(`${BASE_URL}posts/${pathParams.postId}/comment`, newComment, {
+            await axios.post(`${BASE_URL}posts/${pathParams.postId}/comments`, newComment, {
                 headers: {
                     Authorization: token
                 }
