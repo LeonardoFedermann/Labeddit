@@ -32,7 +32,7 @@ export default function LoginPage() {
             password: form.password
         }
         try {
-            const loggedUser = await axios.post(`${BASE_URL}login`, user)
+            const loggedUser = await axios.post(`${BASE_URL}users/login`, user)
             window.localStorage.setItem('token', loggedUser.data.token)
             goToFeed(history)
         } catch (error) {

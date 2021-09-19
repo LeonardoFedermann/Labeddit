@@ -33,11 +33,12 @@ export default function RegisterPage() {
             username: form.username,
         }
         try {
-            const newUserInfo = await axios.post(`${BASE_URL}signup`, newUser)
+            const newUserInfo = await axios.post(`${BASE_URL}users/signup`, newUser)
             window.localStorage.setItem('token', newUserInfo.data.token)
             goToFeed(history)
         } catch (error) {
             alert(error.response.message)
+            console.log(error.response)
         }
     }
 
