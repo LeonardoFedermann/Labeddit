@@ -1,11 +1,13 @@
 ## LABEDDIT
 
-Link para o site criado por meio do surge: http://labeddit-leonardo.surge.sh/
+### APPLICATION UNDER DEVELOPMENT
+
+Link para o site criado por meio do surge: **UNDER DEVELOPMENT**
   
 ### DESCRIÇÃO
 Projeto em React criado para uma atividade do curso de programação da Labenu com o intuito de ser uma simulação de uma rede social similar ao Reddit, chamada **Labeddit**. Para tanto, foi utilizada a seguinte API: 
 
-https://documenter.getpostman.com/view/7549981/TzRLkAfr
+https://documenter.getpostman.com/view/9133542/TzeZG78H
 
 Segue uma descrição das páginas e de suas funcionalidades:  
 
