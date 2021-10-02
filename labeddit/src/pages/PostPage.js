@@ -15,13 +15,16 @@ import logout from '../custom hooks and functions/logout'
 import LanguagesMenu from '../components/LanguagesMenu'
 import { languages } from '../languages/languages'
 import { LanguageContext } from '../globalContext/LanguageContext'
-import {BASE_URL} from '../base-url/base-url'
+import { BASE_URL } from '../base-url/base-url'
+import {votePost} from '../functions/votePost'
 
 export default function PostPage() {
     const history = useHistory()
     const pathParams = useParams()
     const token = window.localStorage.getItem('token')
+    const headers = { Authorization: token }
     const [post, setPost] = useState({})
+    const [comments, setComments] = useState([])
     const [seeComments, setSeeComments] = useState(false)
     const [form, setForm, handleValues, resetForm] = useForm({ text: '' })
     const [language, setLanguage, menu, setMenu] = useContext(LanguageContext)
@@ -32,54 +35,28 @@ export default function PostPage() {
 
     useEffect(() => {
         getPostDetails(pathParams.postId)
+        getPostComments(pathParams.postId)
     }, [pathParams.postId])
 
-    const getPostDetails = async (id) => {
+    const getPostComments = async (id) => {
         try {
-            const postDetails = await axios.get(`${BASE_URL}posts/${id}/comments`, {
-                headers: {
-                    Authorization: token
-                }
+            const postComments = await axios.get(`${BASE_URL}posts/${id}/comments`, { headers })
+            const newListOfComments = postComments.data.filter((comment) => {
+                return typeof comment.body === 'string'
             })
-            const newListOfComments = postDetails.data.comments.filter((comment) => {
-                return typeof comment.text === 'string'
-            })
-            const filteredPost = { ...postDetails.data.post, comments: newListOfComments }
-            setPost(filteredPost)
+            setComments(newListOfComments)
         } catch (error) {
             alert(languages[language].errorMessage)
         }
     }
 
-    const vote = async (id, currentDirection, direction) => {
-        let correctedDirection
-        if (currentDirection === direction) {
-            correctedDirection = 0
-        } else {
-            correctedDirection = direction
-        }
-        const body = {
-            direction: correctedDirection
-        }
+    const getPostDetails = async (id) => {
         try {
-            await axios.put(`${BASE_URL}posts/${id}/votes`, body, {
-                headers: {
-                    Authorization: token,
-                }
+            const listOfPosts = await axios.get(`${BASE_URL}posts`, { headers })
+            const displayedPost = listOfPosts.data.find(post => {
+                return post.id === id
             })
-            let newPostInfo = { ...post }
-            newPostInfo.userVoteDirection = correctedDirection
-            if (correctedDirection > 0 || currentDirection === -1) {
-                currentDirection - direction === 2 || currentDirection - direction === -2 ?
-                    newPostInfo.votesCount += 2 :
-                    newPostInfo.votesCount += 1
-            } else {
-                currentDirection - direction === 2 || currentDirection - direction === -2 ?
-                    newPostInfo.votesCount -= 2 :
-                    newPostInfo.votesCount -= 1
-            }
-
-            setPost(newPostInfo)
+            setPost(displayedPost)
         } catch (error) {
             alert(languages[language].errorMessage)
         }
@@ -126,14 +103,10 @@ export default function PostPage() {
         e.preventDefault()
         try {
             const newComment = {
-                text: form.text
+                body: form.text
             }
-            await axios.post(`${BASE_URL}posts/${pathParams.postId}/comments`, newComment, {
-                headers: {
-                    Authorization: token
-                }
-            })
-            getPostDetails(pathParams.postId)
+            await axios.post(`${BASE_URL}posts/${pathParams.postId}/comments`, newComment, { headers })
+            getPostComments(pathParams.postId)
             resetForm()
         } catch (error) {
             alert(languages[language].errorMessage)
@@ -154,13 +127,31 @@ export default function PostPage() {
                     <Post
                         title={post.title}
                         userName={post.username}
-                        text={post.text}
-                        positiveVote={() => vote(post.id, post.userVoteDirection, 1)}
-                        negativeVote={() => vote(post.id, post.userVoteDirection, -1)}
-                        numberOfPositiveVotes={post.votesCount}
-                        likeIcon={post.userVoteDirection === 1 ? likeIconFilled : likeIcon}
-                        deslikeColor={post.userVoteDirection === -1 ? 'black' : 'white'}
-                        numberOfComments={post.commentsCount}
+                        text={post.body}
+                        positiveVote={() => votePost(
+                            post.id,
+                            post.userVote,
+                            1,
+                            language,
+                            languages,
+                            post,
+                            setPost,
+                            false
+                        )}
+                        negativeVote={() => votePost(
+                            post.id,
+                            post.userVote,
+                            -1,
+                            language,
+                            languages,
+                            post,
+                            setPost,
+                            false
+                        )}
+                        numberOfPositiveVotes={post.voteSum ? post.voteSum : 0}
+                        likeIcon={post.userVote === 1 ? likeIconFilled : likeIcon}
+                        deslikeColor={post.userVote === -1 ? 'black' : 'white'}
+                        numberOfComments={post.commentCount ? post.commentCount : 0}
                         checkDetails={() => setSeeComments(!seeComments)}
                     />
                     <CommentsContainer>
@@ -184,16 +175,17 @@ export default function PostPage() {
                                         {languages[language].commentButton}
                                     </Button>
                                 </CreateCommentForm>
-                                {post.comments.map((comment) => {
+                                {console.log(comments)}
+                                {comments.map((comment) => {
                                     return <Comment
                                         key={comment.id}
                                         userName={comment.username}
-                                        text={comment.text}
-                                        positiveVote={() => voteComment(comment.id, comment.userVoteDirection, 1)}
-                                        negativeVote={() => voteComment(comment.id, comment.userVoteDirection, -1)}
-                                        numberOfVotes={comment.votesCount}
-                                        likeIcon={comment.userVoteDirection === 1 ? likeIconFilled : likeIcon}
-                                        deslikeColor={comment.userVoteDirection === -1 ? 'black' : 'white'}
+                                        text={comment.body}
+                                        positiveVote={() => voteComment(comment.id, comment.userVote, 1)}
+                                        negativeVote={() => voteComment(comment.id, comment.userVote, -1)}
+                                        numberOfVotes={comment.voteSum ? comment.voteSum : 0}
+                                        likeIcon={comment.userVote === 1 ? likeIconFilled : likeIcon}
+                                        deslikeColor={comment.userVote === -1 ? 'black' : 'white'}
                                     />
                                 })}
                             </>
