@@ -5,7 +5,16 @@ import Button from '@material-ui/core/Button'
 import { goToLogin, goBack, goToPostPage } from '../coordinator/Coordinator'
 import { useForm } from '../custom hooks and functions/useForm'
 import logout from '../custom hooks and functions/logout'
-import { FeedAndPostContainer, PostsContainer, CreatePostForm, SearchForm, StyledTextField, FeedFormsContainer, ShowAndHideButton, ShowAndHideButtonContainer } from '../style/style'
+import { 
+    FeedAndPostContainer, 
+    PostsContainer, 
+    CreatePostForm, 
+    SearchForm, 
+    StyledTextField, 
+    FeedFormsContainer, 
+    ShowAndHideButton, 
+    ShowAndHideButtonContainer 
+} from '../style/style'
 import Header from '../components/Header'
 import Post from '../components/Post'
 import Loading from '../components/Loading'
@@ -15,10 +24,12 @@ import { LanguageContext } from '../globalContext/LanguageContext'
 import likeIconFilled from '../images/favorite.svg'
 import likeIcon from '../images/favorite-white.svg'
 import { BASE_URL } from '../base-url/base-url'
+import { votePost } from '../functions/votePost'
 
 export default function FeedPage() {
     const history = useHistory()
     const token = window.localStorage.getItem('token')
+    const headers = { Authorization: token }
     const [posts, setPosts] = useState([])
     const [renderedPosts, setRenderedPosts] = useState([])
     const [showFields, setShowFields] = useState(false)
@@ -49,70 +60,23 @@ export default function FeedPage() {
 
     const getPosts = async () => {
         try {
-            const listOfPosts = await axios.get(`${BASE_URL}posts`, {
-                headers: {
-                    Authorization: token
-                }
-            })
-            let filteredPosts = listOfPosts.data.posts.filter((post) => {
-                return typeof post.text === 'string' && typeof post.title === 'string'
-            })
-            setPosts(filteredPosts)
+            const listOfPosts = await axios.get(`${BASE_URL}posts`, { headers })
+            console.log(listOfPosts.data)
+            setPosts(listOfPosts.data)
         } catch (error) {
             alert(languages[language].errorMessage)
             console.log(error)
         }
     }
 
-    const vote = async (id, currentDirection, direction) => {
-        let correctedDirection
-        if (currentDirection === direction) {
-            correctedDirection = 0
-        } else {
-            correctedDirection = direction
-        }
-        const body = {
-            direction: correctedDirection
-        }
-        try {
-            await axios.put(`${BASE_URL}posts/${id}/votes`, body, {
-                headers: {
-                    Authorization: token,
-                }
-            })
-            let newPostsInfo = [...renderedPosts]
-            newPostsInfo.forEach((post) => {
-                if (post.id === id) {
-                    post.userVoteDirection = correctedDirection
-                    if (correctedDirection > 0 || currentDirection === -1) {
-                        currentDirection - direction === 2 || currentDirection - direction === -2 ?
-                            post.votesCount += 2 :
-                            post.votesCount += 1
-                    } else {
-                        currentDirection - direction === 2 || currentDirection - direction === -2 ?
-                            post.votesCount -= 2 :
-                            post.votesCount -= 1
-                    }
-                }
-            })
-            setRenderedPosts(newPostsInfo)
-        } catch (error) {
-            alert(languages[language].errorMessage)
-        }
-    }
-
     const createPost = async (e) => {
         e.preventDefault()
         const newPost = {
-            text: form.text,
+            body: form.text,
             title: form.title
         }
         try {
-            await axios.post(`${BASE_URL}posts`, newPost, {
-                headers: {
-                    Authorization: token
-                }
-            })
+            await axios.post(`${BASE_URL}posts`, newPost, { headers })
             getPosts()
             resetForm()
         } catch (error) {
@@ -197,18 +161,36 @@ export default function FeedPage() {
                         {!renderedPosts[0] ?
                             <h3>{languages[language].searchCorrespondence}</h3> :
                             <>
-                                {renderedPosts.map((post) => {
+                                {renderedPosts && renderedPosts.map((post) => {
                                     return <Post
                                         key={post.id}
                                         title={post.title}
                                         userName={post.username}
-                                        text={post.text}
-                                        positiveVote={() => vote(post.id, post.userVoteDirection, 1)}
-                                        negativeVote={() => vote(post.id, post.userVoteDirection, -1)}
-                                        numberOfPositiveVotes={post.votesCount}
-                                        likeIcon={post.userVoteDirection === 1 ? likeIconFilled : likeIcon}
-                                        deslikeColor={post.userVoteDirection === -1 ? 'black' : 'white'}
-                                        numberOfComments={post.commentsCount}
+                                        text={post.body}
+                                        positiveVote={() => votePost(
+                                            post.id, 
+                                            post.userVote, 
+                                            1, 
+                                            language,
+                                            languages,
+                                            renderedPosts, 
+                                            setRenderedPosts,
+                                            true
+                                            )}
+                                        negativeVote={() => votePost(
+                                            post.id, 
+                                            post.userVote, 
+                                            -1, 
+                                            language,
+                                            languages,
+                                            renderedPosts, 
+                                            setRenderedPosts,
+                                            true
+                                            )}
+                                        numberOfPositiveVotes={post.voteSum ? post.voteSum : 0}
+                                        likeIcon={post.userVote === 1 ? likeIconFilled : likeIcon}
+                                        deslikeColor={post.userVote === -1 ? 'black' : 'white'}
+                                        numberOfComments={post.commentCount ? post.commentCount : 0}
                                         checkDetails={() => goToPostPage(history, post.id)}
                                     />
                                 })}
