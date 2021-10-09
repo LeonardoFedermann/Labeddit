@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
-import axios from 'axios'
 import { FeedAndPostContainer, CommentsContainer, CreateCommentField, CreateCommentForm } from '../style/style'
 import { useForm } from '../custom_hooks/useForm'
-import {useProtectedPage} from '../custom_hooks/useProtectedPage'
-import {useSetDocumentTitle} from '../custom_hooks/useSetDocumentTitle'
+import { useProtectedPage } from '../custom_hooks/useProtectedPage'
+import { useSetDocumentTitle } from '../custom_hooks/useSetDocumentTitle'
 import Header from '../components/Header'
 import Post from '../components/Post'
 import Loading from '../components/Loading'
@@ -15,16 +14,14 @@ import likeIcon from '../images/favorite-white.svg'
 import LanguagesMenu from '../components/LanguagesMenu'
 import { languages } from '../languages/languages'
 import { LanguageContext } from '../globalContext/LanguageContext'
-import { BASE_URL } from '../base-url/base-url'
 import { votePost } from '../functions/votePost'
 import { voteComment } from '../functions/voteComment'
 import { getPostDetails } from '../functions/getPostDetails'
 import { getPostComments } from '../functions/getPostComments'
+import { createComment } from '../functions/createComment'
 
 export default function PostPage() {
     const pathParams = useParams()
-    const token = window.localStorage.getItem('token')
-    const headers = { Authorization: token }
     const [post, setPost] = useState({})
     const [comments, setComments] = useState([])
     const [seeComments, setSeeComments] = useState(false)
@@ -39,18 +36,9 @@ export default function PostPage() {
         getPostComments(pathParams.postId, setComments, languages, language)
     }, [pathParams.postId])
 
-    const createComment = async (e) => {
+    const createNewComment = (e) => {
         e.preventDefault()
-        try {
-            const newComment = {
-                body: form.text
-            }
-            await axios.post(`${BASE_URL}posts/${pathParams.postId}/comments`, newComment, { headers })
-            getPostComments(pathParams.postId)
-            resetForm()
-        } catch (error) {
-            alert(languages[language].errorMessage)
-        }
+        createComment(form.text, post, setComments, setPost, resetForm, languages, language)
     }
 
     return (
@@ -93,7 +81,7 @@ export default function PostPage() {
                     <CommentsContainer>
                         {seeComments &&
                             <>
-                                <CreateCommentForm onSubmit={createComment}>
+                                <CreateCommentForm onSubmit={createNewComment}>
                                     <CreateCommentField
                                         label={languages[language].commentFieldLabel}
                                         value={form.text}
