@@ -18,7 +18,7 @@ import PostsList from '../components/PostsList'
 export default function FeedPage() {
     const [posts, setPosts] = useState([])
     const [renderedPosts, setRenderedPosts] = useState([])
-    const [showFields, setShowFields] = useState(false)
+    const [showForms, setShowForms] = useState(false)
     const [form, setForm, handleValues, resetForm] = useForm({ title: '', text: '', search: '' })
     const [language, setLanguage] = useContext(LanguageContext)
 
@@ -42,16 +42,16 @@ export default function FeedPage() {
                 <>
                     <ShowAndHideButtonContainer>
                         <ShowAndHideButton
-                            onClick={() => setShowFields(!showFields)}
+                            onClick={() => setShowForms(!showForms)}
                             color="primary"
                             variant="contained"
                         >
-                            {showFields ?
+                            {showForms ?
                                 languages[language].hide :
                                 languages[language].show} {languages[language].fieldToShowOrHide}
                         </ShowAndHideButton>
                     </ShowAndHideButtonContainer>
-                    {showFields &&
+                    {showForms &&
                         <FeedForms
                             createPost={createNewPost}
                             title={form.title}
