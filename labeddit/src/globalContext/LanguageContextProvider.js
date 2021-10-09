@@ -1,6 +1,6 @@
 import React from 'react'
 import { LanguageContext } from './LanguageContext'
-import { useLanguages } from '../custom hooks and functions/useLanguages'
+import { useLanguages } from '../custom_hooks/useLanguages'
 
 export const LanguageContextProvider = (props) => {
     const [language, setLanguage, menu, setMenu, changeLanguage] = useLanguages()

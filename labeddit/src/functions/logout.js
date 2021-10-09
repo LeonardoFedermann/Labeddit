@@ -1,6 +1,6 @@
 import { goToLogin } from '../coordinator/Coordinator'
 
-export default function logout(history) {
+export const logout = (history) => {
     window.localStorage.removeItem('token')
     goToLogin(history)
 }
